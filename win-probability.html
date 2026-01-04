@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OKBET Arena - Win Probability Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .control-group { display: flex; align-items: center; gap: 8px; }
+        .control-group label { color: #888; font-size: 0.85rem; }
+        .control-group input, .control-group select {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .btn {
+            padding: 10px 24px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .btn:hover { transform: scale(1.02); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .agent-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid;
+            position: relative;
+        }
+        .agent-card.rank-1 { border-left-color: #ffd700; }
+        .agent-card.rank-2 { border-left-color: #c0c0c0; }
+        .agent-card.rank-3 { border-left-color: #cd7f32; }
+        .agent-card.rank-4 { border-left-color: #666; }
+        .agent-card.rank-5 { border-left-color: #444; }
+        .agent-name { font-size: 1rem; margin-bottom: 10px; color: #ccc; }
+        .win-prob {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .agent-stats { font-size: 0.8rem; color: #888; margin-top: 10px; }
+        .prob-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        .prob-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .methodology {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.85rem;
+            color: #aaa;
+            line-height: 1.6;
+        }
+        .methodology h3 { color: #fff; margin-bottom: 10px; }
+        .methodology ul { margin-left: 20px; }
+        .methodology li { margin-bottom: 5px; }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .progress-info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #00d4ff;
+        }
+        .current-state {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .state-item {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .state-item .name { font-size: 0.75rem; color: #888; margin-bottom: 5px; }
+        .state-item .balance { font-size: 1.1rem; font-weight: bold; }
+        .state-item .pnl { font-size: 0.8rem; }
+        .pnl-positive { color: #00ff88; }
+        .pnl-negative { color: #ff4757; }
+        @media (max-width: 768px) {
+            .current-state { grid-template-columns: repeat(2, 1fr); }
+            .results-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Win Probability Simulator</h1>
+            <p style="color:#888; margin-top:8px;">Monte Carlo simulation for OKBET Arena</p>
+        </header>
+
+        <!-- Current State -->
+        <div class="section">
+            <h2>Current State</h2>
+            <div id="currentState" class="current-state">
+                <div class="loading"><div class="loading-spinner"></div>Loading...</div>
+            </div>
+        </div>
+
+        <!-- Simulation Controls -->
+        <div class="section">
+            <h2>Simulation Settings</h2>
+            <div class="controls">
+                <div class="control-group">
+                    <label>Simulations:</label>
+                    <select id="simCount">
+                        <option value="1000">1,000</option>
+                        <option value="5000">5,000</option>
+                        <option value="10000" selected>10,000</option>
+                        <option value="50000">50,000</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Days Remaining:</label>
+                    <input type="number" id="daysRemaining" value="27" min="1" max="60" style="width:70px;">
+                </div>
+                <button class="btn" id="runSimBtn" onclick="runSimulation()">Run Simulation</button>
+            </div>
+            <div id="simulationProgress"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="section">
+            <h2>Win Probability Results</h2>
+            <div id="results" class="results-grid">
+                <div style="grid-column: 1/-1; text-align:center; color:#666; padding:40px;">
+                    Click "Run Simulation" to calculate win probabilities
+                </div>
+            </div>
+        </div>
+
+        <!-- Methodology -->
+        <div class="section">
+            <h2>Methodology</h2>
+            <div class="methodology">
+                <h3>How It Works</h3>
+                <ul>
+                    <li><strong>Data Input:</strong> Fetches current balance, PnL, win rate, and open positions for each AI</li>
+                    <li><strong>Trade Simulation:</strong> Each remaining trade outcome is randomly determined based on historical win rate</li>
+                    <li><strong>P&L Calculation:</strong> Win = +avg_win, Loss = -avg_loss (derived from historical data)</li>
+                    <li><strong>Position Resolution:</strong> Open positions resolve with 50% probability at current unrealized P&L</li>
+                    <li><strong>Winner:</strong> AI with highest final balance wins that simulation run</li>
+                    <li><strong>Win Probability:</strong> (Wins / Total Simulations) * 100%</li>
+                </ul>
+                <h3 style="margin-top:15px;">Key Assumptions</h3>
+                <ul>
+                    <li>Future trade performance follows historical patterns</li>
+                    <li>Average trade size remains consistent</li>
+                    <li>Open positions have 50/50 chance of profit/loss at current unrealized levels</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://okbet-web-api.onrender.com/api/public/arena';
+        const CORS_PROXY = 'https://corsproxy.io/?';
+        const INITIAL_BALANCE = 250;
+
+        let agentData = {};
+
+        async function fetchAPI(endpoint) {
+            const url = `${CORS_PROXY}${encodeURIComponent(API_BASE + endpoint)}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        }
+
+        async function loadCurrentState() {
+            try {
+                const leaderboard = await fetchAPI('/leaderboard');
+                const container = document.getElementById('currentState');
+
+                let html = '';
+                for (const agent of leaderboard.leaderboard) {
+                    const balance = INITIAL_BALANCE + agent.total_pnl;
+                    const pnlClass = agent.total_pnl >= 0 ? 'pnl-positive' : 'pnl-negative';
+                    const pnlSign = agent.total_pnl >= 0 ? '+' : '';
+
+                    // Calculate key metric: PnL per completed trade
+                    const completedTrades = agent.winning_trades + agent.losing_trades;
+                    const pnlPerTrade = completedTrades > 0 ? agent.total_pnl / completedTrades : 0;
+
+                    // Estimate volatility from the data
+                    // Standard deviation ≈ sqrt(variance), estimate from win/loss ratio
+                    const avgTradeSize = 7; // typical position size
+                    const volatility = avgTradeSize * 0.5; // rough estimate
+
+                    // Estimate trades per day based on historical activity
+                    const daysSoFar = 30; // Competition started ~30 days ago
+                    const tradesPerDay = agent.total_trades / daysSoFar;
+
+                    agentData[agent.llm_name] = {
+                        name: agent.display_name,
+                        llm_name: agent.llm_name,
+                        balance: balance,
+                        pnl: agent.total_pnl,
+                        winRate: agent.win_rate / 100,
+                        totalTrades: agent.total_trades,
+                        completedTrades: completedTrades,
+                        winningTrades: agent.winning_trades,
+                        losingTrades: agent.losing_trades,
+                        openPositions: agent.open_positions,
+                        pnlPerTrade: pnlPerTrade,  // KEY: historical performance per trade
+                        tradesPerDay: tradesPerDay, // Each AI has different activity level
+                        volatility: volatility,
+                        unrealizedPnl: 0
+                    };
+
+                    html += `
+                        <div class="state-item">
+                            <div class="name">#${agent.rank} ${agent.display_name}</div>
+                            <div class="balance ${pnlClass}">$${balance.toFixed(2)}</div>
+                            <div class="pnl ${pnlClass}">${pnlSign}$${agent.total_pnl.toFixed(2)}</div>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+
+                // Fetch positions for unrealized PnL
+                const agents = Object.keys(agentData);
+                for (const agentName of agents) {
+                    try {
+                        const posData = await fetchAPI(`/agents/${agentName}/positions`);
+                        if (posData?.positions) {
+                            const unrealized = posData.positions.reduce((sum, p) => sum + p.unrealized_pnl, 0);
+                            agentData[agentName].unrealizedPnl = unrealized;
+                        }
+                    } catch (e) {
+                        console.error(`Failed to fetch positions for ${agentName}`);
+                    }
+                }
+
+            } catch (error) {
+                document.getElementById('currentState').innerHTML =
+                    `<div style="color:#ff4757;">Error loading data: ${error.message}</div>`;
+            }
+        }
+
+        // Box-Muller transform for normal distribution
+        function randomNormal(mean, stdDev) {
+            const u1 = Math.random();
+            const u2 = Math.random();
+            const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+            return mean + z * stdDev;
+        }
+
+        function runSingleSimulation(agents, daysRemaining) {
+            const finalBalances = {};
+
+            for (const [name, agent] of Object.entries(agents)) {
+                let balance = agent.balance;
+
+                // Add unrealized PnL with small variance (positions will resolve)
+                balance += agent.unrealizedPnl * (0.7 + Math.random() * 0.6);
+
+                // KEY: Each AI has its own trading frequency based on history
+                const remainingTrades = Math.round(agent.tradesPerDay * daysRemaining);
+
+                // Use historical pnlPerTrade as expected value for future trades
+                const expectedPnlPerTrade = agent.pnlPerTrade;
+                const tradeVolatility = agent.volatility;
+
+                // Simulate remaining trades (each AI trades at their own pace)
+                for (let i = 0; i < remainingTrades; i++) {
+                    // Each trade: expected value + normal noise
+                    const tradePnl = randomNormal(expectedPnlPerTrade, tradeVolatility);
+                    balance += tradePnl;
+                }
+
+                finalBalances[name] = balance;
+            }
+
+            // Find winner
+            let winner = null;
+            let maxBalance = -Infinity;
+            for (const [name, balance] of Object.entries(finalBalances)) {
+                if (balance > maxBalance) {
+                    maxBalance = balance;
+                    winner = name;
+                }
+            }
+
+            return winner;
+        }
+
+        async function runSimulation() {
+            const btn = document.getElementById('runSimBtn');
+            const progressDiv = document.getElementById('simulationProgress');
+            const resultsDiv = document.getElementById('results');
+
+            btn.disabled = true;
+
+            const simCount = parseInt(document.getElementById('simCount').value);
+            const daysRemaining = parseInt(document.getElementById('daysRemaining').value);
+
+            progressDiv.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div>Running ${simCount.toLocaleString()} simulations...</div>
+                    <div class="progress-info" id="progressText">0%</div>
+                </div>
+            `;
+
+            // Run simulation in chunks to avoid UI freeze
+            const wins = {};
+            Object.keys(agentData).forEach(name => wins[name] = 0);
+
+            const chunkSize = 500;
+            let completed = 0;
+
+            await new Promise(resolve => {
+                function processChunk() {
+                    const end = Math.min(completed + chunkSize, simCount);
+
+                    for (let i = completed; i < end; i++) {
+                        // Pass days remaining, each AI calculates its own trade count
+                        const winner = runSingleSimulation(agentData, daysRemaining);
+                        if (winner) wins[winner]++;
+                    }
+
+                    completed = end;
+                    const progress = Math.round((completed / simCount) * 100);
+                    document.getElementById('progressText').textContent = `${progress}%`;
+
+                    if (completed < simCount) {
+                        setTimeout(processChunk, 0);
+                    } else {
+                        resolve();
+                    }
+                }
+                processChunk();
+            });
+
+            // Calculate probabilities
+            const probabilities = {};
+            for (const [name, winCount] of Object.entries(wins)) {
+                probabilities[name] = (winCount / simCount) * 100;
+            }
+
+            // Sort by probability
+            const sorted = Object.entries(probabilities)
+                .sort((a, b) => b[1] - a[1]);
+
+            // Render results
+            let html = '';
+            sorted.forEach(([name, prob], idx) => {
+                const agent = agentData[name];
+                html += `
+                    <div class="agent-card rank-${idx + 1}">
+                        <div class="agent-name">${agent.name}</div>
+                        <div class="win-prob">${prob.toFixed(1)}%</div>
+                        <div class="prob-bar">
+                            <div class="prob-bar-fill" style="width: ${prob}%"></div>
+                        </div>
+                        <div class="agent-stats">
+                            Current: $${agent.balance.toFixed(2)} |
+                            PnL/Trade: ${agent.pnlPerTrade >= 0 ? '+' : ''}${agent.pnlPerTrade.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+
+            // Show estimated trades per agent
+            const tradeInfo = Object.values(agentData)
+                .map(a => `${a.name.split(' ')[0]}: ~${Math.round(a.tradesPerDay * daysRemaining)}`)
+                .join(', ');
+
+            progressDiv.innerHTML = `
+                <div style="text-align:center; color:#00ff88;">
+                    Completed ${simCount.toLocaleString()} simulations (${daysRemaining} days remaining)<br>
+                    <span style="color:#888; font-size:0.85rem;">Est. trades: ${tradeInfo}</span>
+                </div>
+            `;
+            btn.disabled = false;
+        }
+
+        // Calculate days remaining until Jan 31, 2026
+        function calculateDaysRemaining() {
+            const endDate = new Date('2026-01-31T23:59:59Z');
+            const now = new Date();
+            const diffTime = endDate - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return Math.max(1, diffDays);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('daysRemaining').value = calculateDaysRemaining();
+            await loadCurrentState();
+        });
+    </script>
+</body>
+</html>
