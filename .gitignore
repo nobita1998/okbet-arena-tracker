@@ -14,3 +14,12 @@ Thumbs.db
 # Local config
 .env
 .env.local
+
+# MCP config with local paths (use .mcp.json.example as template)
+.mcp.json
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Temp files
+nul

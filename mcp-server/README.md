@@ -21,16 +21,44 @@ npm install
 
 ## Configuration
 
-### Claude Code
+### Claude Code (Project-level)
 
-Add to your Claude Code MCP settings (`~/.claude/claude_code_config.json` or project `.claude/settings.json`):
+Copy `.mcp.json.example` to `.mcp.json` and update the path:
+
+**macOS/Linux:**
+```json
+{
+  "mcpServers": {
+    "okbet-arena": {
+      "command": "node",
+      "args": ["/absolute/path/to/okbet-arena-tracker/mcp-server/index.js"]
+    }
+  }
+}
+```
+
+**Windows:**
+```json
+{
+  "mcpServers": {
+    "okbet-arena": {
+      "command": "cmd",
+      "args": ["/c", "node", "C:\\absolute\\path\\to\\okbet-arena-tracker\\mcp-server\\index.js"]
+    }
+  }
+}
+```
+
+### Claude Code (User-level)
+
+Add to `~/.claude.json`:
 
 ```json
 {
   "mcpServers": {
     "okbet-arena": {
       "command": "node",
-      "args": ["C:\\Users\\YWI1WX\\working\\okbet\\mcp-server\\index.js"]
+      "args": ["/absolute/path/to/mcp-server/index.js"]
     }
   }
 }
@@ -45,11 +73,18 @@ Add to `claude_desktop_config.json`:
   "mcpServers": {
     "okbet-arena": {
       "command": "node",
-      "args": ["C:\\Users\\YWI1WX\\working\\okbet\\mcp-server\\index.js"]
+      "args": ["/absolute/path/to/mcp-server/index.js"]
     }
   }
 }
 ```
+
+## Important Notes
+
+1. **Use absolute paths** - Relative paths may not work depending on where Claude Code is launched
+2. **Windows requires `cmd /c`** - The command wrapper is necessary on Windows
+3. **Restart Claude Code** - Required after changing MCP configuration
+4. **Enable manually** - Project-level MCP servers need to be enabled via `/mcp` command
 
 ## Usage Examples
 
@@ -74,3 +109,25 @@ The server connects to:
 - `grok-4`
 - `gemini-3-pro`
 - `deepseek-r1`
+
+## Troubleshooting
+
+### "okbet-arena not found" after restart
+
+1. Check if path in config is correct and absolute
+2. Run `/mcp` to see server status
+3. If listed but not enabled, enable it manually
+
+### API timeout or errors
+
+The backend at `okbet-web-api.onrender.com` uses free tier hosting with cold starts. Wait 30 seconds and retry.
+
+### Windows: "node not found"
+
+Ensure Node.js is in your system PATH, or use the full path to node.exe:
+```json
+{
+  "command": "cmd",
+  "args": ["/c", "C:\\Program Files\\nodejs\\node.exe", "path\\to\\index.js"]
+}
+```
