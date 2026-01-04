@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "okbet-arena": {
+      "command": "cmd",
+      "args": ["/c", "node", "C:\\Users\\YWI1WX\\working\\okbet\\mcp-server\\index.js"]
+    }
+  }
+}

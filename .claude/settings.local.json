@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:okbet-web-api.onrender.com)",
+      "Bash(curl:*)",
+      "Bash(start \"\" \"C:\\Users\\YWI1WX\\working\\okbet\\index.html\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
