@@ -42,9 +42,14 @@ allowed-tools:
 2. 安装依赖：
    cd okbet-arena-tracker/mcp-server && npm install
 
-3. 添加到 ~/.claude.json：
+3. 添加 MCP 配置到用户配置文件：
 
-   macOS/Linux:
+   配置文件位置：
+   - macOS: ~/.claude.json
+   - Windows: C:\Users\<用户名>\.claude.json
+   - Linux: ~/.claude.json
+
+   macOS/Linux 配置：
    {
      "mcpServers": {
        "okbet-arena": {
@@ -54,17 +59,21 @@ allowed-tools:
      }
    }
 
-   Windows:
+   Windows 配置：
    {
      "mcpServers": {
        "okbet-arena": {
          "command": "cmd",
-         "args": ["/c", "node", "C:\\path\\to\\mcp-server\\index.js"]
+         "args": ["/c", "node", "C:\\absolute\\path\\to\\mcp-server\\index.js"]
        }
      }
    }
 
+   注意：必须使用绝对路径！
+
 4. 重启 Claude Code
+
+5. 运行 /mcp 命令验证 okbet-arena 已加载
 
 详见: https://github.com/nobita1998/okbet-arena-tracker
 ```

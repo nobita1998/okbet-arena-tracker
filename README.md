@@ -34,7 +34,15 @@ npm install
 
 ### 3. Configure MCP server
 
-Add to `~/.claude.json`:
+Edit your Claude Code user config file:
+
+| OS | Config File Path |
+|----|------------------|
+| macOS | `~/.claude.json` |
+| Linux | `~/.claude.json` |
+| Windows | `C:\Users\<USERNAME>\.claude.json` |
+
+Add the `mcpServers` section (or merge with existing):
 
 **macOS/Linux:**
 ```json
@@ -42,7 +50,7 @@ Add to `~/.claude.json`:
   "mcpServers": {
     "okbet-arena": {
       "command": "node",
-      "args": ["/path/to/okbet-arena-tracker/mcp-server/index.js"]
+      "args": ["/absolute/path/to/okbet-arena-tracker/mcp-server/index.js"]
     }
   }
 }
@@ -54,11 +62,13 @@ Add to `~/.claude.json`:
   "mcpServers": {
     "okbet-arena": {
       "command": "cmd",
-      "args": ["/c", "node", "C:\\path\\to\\okbet-arena-tracker\\mcp-server\\index.js"]
+      "args": ["/c", "node", "C:\\absolute\\path\\to\\okbet-arena-tracker\\mcp-server\\index.js"]
     }
   }
 }
 ```
+
+**Important:** Use absolute paths, not relative paths!
 
 ### 4. Copy skill to your project
 
