@@ -25,6 +25,50 @@ allowed-tools:
 - **截止日期**: January 31, 2026 23:59:59 UTC
 - **胜出条件**: 最高 Total P&L (Balance - 250)
 
+## 前置检查
+
+**此 Skill 依赖 `okbet-arena` MCP Server。**
+
+在执行前，检查 MCP 工具是否可用。如果调用 `mcp__okbet-arena__get_leaderboard` 失败或工具不存在，输出以下错误信息并停止：
+
+```
+❌ MCP Server 未配置
+
+此 Skill 需要 okbet-arena MCP Server。请按以下步骤配置：
+
+1. 克隆仓库：
+   git clone https://github.com/nobita1998/okbet-arena-tracker.git
+
+2. 安装依赖：
+   cd okbet-arena-tracker/mcp-server && npm install
+
+3. 添加到 ~/.claude.json：
+
+   macOS/Linux:
+   {
+     "mcpServers": {
+       "okbet-arena": {
+         "command": "node",
+         "args": ["/absolute/path/to/mcp-server/index.js"]
+       }
+     }
+   }
+
+   Windows:
+   {
+     "mcpServers": {
+       "okbet-arena": {
+         "command": "cmd",
+         "args": ["/c", "node", "C:\\path\\to\\mcp-server\\index.js"]
+       }
+     }
+   }
+
+4. 重启 Claude Code
+
+详见: https://github.com/nobita1998/okbet-arena-tracker
+```
+
 ## 执行步骤
 
 ### Step 1: 获取数据
