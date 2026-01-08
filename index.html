@@ -444,6 +444,159 @@
             border-color: #7b2cbf;
             color: #fff;
         }
+
+        /* Predict Section */
+        .predict-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .predict-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #7b2cbf, #00d4ff);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(123, 44, 191, 0.4);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .predict-btn.loading::after {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .predict-status {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .predict-status.running {
+            color: #00d4ff;
+        }
+
+        .predict-output {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Segoe UI', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .predict-output.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .predict-output table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .predict-output th,
+        .predict-output td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .predict-output th {
+            background: rgba(0,0,0,0.3);
+            color: #00d4ff;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .predict-output h2 {
+            color: #00d4ff;
+            font-size: 1.1rem;
+            margin: 20px 0 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0,212,255,0.3);
+        }
+
+        .predict-output h2:first-child {
+            margin-top: 0;
+        }
+
+        .predict-tool-call {
+            background: rgba(123, 44, 191, 0.2);
+            border-left: 3px solid #7b2cbf;
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-size: 0.8rem;
+            color: #aaa;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .predict-error {
+            background: rgba(255, 71, 87, 0.2);
+            border-left: 3px solid #ff4757;
+            padding: 10px 15px;
+            color: #ff4757;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .api-config {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .api-config input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+        }
+
+        .api-config input:focus {
+            outline: none;
+            border-color: #7b2cbf;
+        }
+
+        .api-config label {
+            font-size: 0.85rem;
+            color: #888;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -468,6 +621,24 @@
                     <div class="loading-spinner"></div>
                     <p>Loading...</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Win Probability Prediction -->
+        <div class="section">
+            <div class="predict-header">
+                <h2>🎯 Win Probability Prediction</h2>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span class="predict-status" id="predictStatus">Ready</span>
+                    <button class="predict-btn" id="predictBtn" onclick="runPredict()">Run Prediction</button>
+                </div>
+            </div>
+            <div class="api-config">
+                <label>API URL:</label>
+                <input type="text" id="predictApiUrl" value="http://localhost:3001/api/predict" placeholder="http://localhost:3001/api/predict">
+            </div>
+            <div class="predict-output empty" id="predictOutput">
+                Click "Run Prediction" to generate AI win probability analysis
             </div>
         </div>
 
@@ -506,8 +677,13 @@
 
         async function fetchData(endpoint) {
             try {
-                const url = `${CORS_PROXY}${encodeURIComponent(API_BASE + endpoint)}`;
-                const response = await fetch(url);
+                // 添加时间戳参数绕过 CORS proxy 缓存
+                const timestamp = Date.now();
+                const apiUrl = `${API_BASE}${endpoint}?_t=${timestamp}`;
+                const url = `${CORS_PROXY}${encodeURIComponent(apiUrl)}`;
+                const response = await fetch(url, {
+                    cache: 'no-store'  // 禁用浏览器缓存
+                });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return await response.json();
             } catch (error) {
@@ -826,6 +1002,148 @@
         async function init() {
             await loadAllData();
             setInterval(updateCountdown, 1000);
+        }
+
+        // ==================== Predict API ====================
+        let predictEventSource = null;
+
+        function runPredict() {
+            const btn = document.getElementById('predictBtn');
+            const status = document.getElementById('predictStatus');
+            const output = document.getElementById('predictOutput');
+            const apiUrl = document.getElementById('predictApiUrl').value.trim();
+
+            if (!apiUrl) {
+                alert('Please enter API URL');
+                return;
+            }
+
+            // 如果正在运行，取消
+            if (predictEventSource) {
+                predictEventSource.close();
+                predictEventSource = null;
+                btn.textContent = 'Run Prediction';
+                btn.classList.remove('loading');
+                status.textContent = 'Cancelled';
+                status.classList.remove('running');
+                return;
+            }
+
+            // 开始预测
+            btn.textContent = 'Cancel';
+            btn.classList.add('loading');
+            status.textContent = 'Connecting...';
+            status.classList.add('running');
+            output.classList.remove('empty');
+            output.innerHTML = '';
+
+            let fullText = '';
+            let toolCallCount = 0;
+
+            try {
+                predictEventSource = new EventSource(apiUrl);
+
+                predictEventSource.onopen = () => {
+                    status.textContent = 'Running...';
+                };
+
+                predictEventSource.onmessage = (event) => {
+                    if (event.data === '[DONE]') {
+                        finishPredict('Complete');
+                        return;
+                    }
+
+                    try {
+                        const data = JSON.parse(event.data);
+
+                        if (data.type === 'done') {
+                            finishPredict('Complete');
+                            return;
+                        }
+
+                        if (data.type === 'error') {
+                            output.innerHTML += `<div class="predict-error">Error: ${data.error}</div>`;
+                            finishPredict('Error');
+                            return;
+                        }
+
+                        // 处理 assistant 消息
+                        if (data.type === 'assistant' && data.content?.message?.content) {
+                            const content = data.content.message.content;
+                            content.forEach(item => {
+                                if (item.type === 'text' && item.text) {
+                                    fullText += item.text;
+                                }
+                            });
+                            output.innerHTML = renderMarkdown(fullText);
+                            output.scrollTop = output.scrollHeight;
+                        }
+
+                        // 处理 tool_use 消息
+                        if (data.type === 'tool_use' || data.content?.type === 'tool_use') {
+                            toolCallCount++;
+                            const toolName = data.content?.name || data.name || 'unknown';
+                            status.textContent = `Calling: ${toolName}...`;
+                        }
+
+                    } catch (e) {
+                        console.error('Parse error:', e, event.data);
+                    }
+                };
+
+                predictEventSource.onerror = (error) => {
+                    console.error('EventSource error:', error);
+                    if (predictEventSource.readyState === EventSource.CLOSED) {
+                        finishPredict('Connection closed');
+                    } else {
+                        output.innerHTML += `<div class="predict-error">Connection error. Is the API server running?</div>`;
+                        finishPredict('Error');
+                    }
+                };
+
+            } catch (error) {
+                output.innerHTML = `<div class="predict-error">Failed to connect: ${error.message}</div>`;
+                finishPredict('Error');
+            }
+        }
+
+        function finishPredict(statusText) {
+            const btn = document.getElementById('predictBtn');
+            const status = document.getElementById('predictStatus');
+
+            if (predictEventSource) {
+                predictEventSource.close();
+                predictEventSource = null;
+            }
+
+            btn.textContent = 'Run Prediction';
+            btn.classList.remove('loading');
+            status.textContent = statusText;
+            status.classList.remove('running');
+        }
+
+        // 简单的 Markdown 渲染
+        function renderMarkdown(text) {
+            return text
+                // Headers
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                // Tables
+                .replace(/^\|(.+)\|$/gm, (match) => {
+                    const cells = match.split('|').filter(c => c.trim());
+                    const isHeader = cells.some(c => /^[\s-:]+$/.test(c));
+                    if (isHeader) return ''; // Skip separator row
+                    const tag = 'td';
+                    const row = cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('');
+                    return `<tr>${row}</tr>`;
+                })
+                // Wrap tables
+                .replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>')
+                // Line breaks
+                .replace(/\n/g, '<br>');
         }
 
         init();

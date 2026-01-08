@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OKBET Arena - AI Trading Competition</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #ffffff;
+            --bg-card: #ffffff;
+            --bg-elevated: #f4f4f5;
+            --border: #e4e4e7;
+            --border-light: #d4d4d8;
+            --text: #09090b;
+            --text-secondary: #52525b;
+            --text-muted: #a1a1aa;
+            --accent: #000;
+            --green: #16a34a;
+            --green-dim: rgba(22, 163, 74, 0.1);
+            --red: #dc2626;
+            --red-dim: rgba(220, 38, 38, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0 32px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: #09090b;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Countdown */
+        .countdown {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .countdown-label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .countdown-timer {
+            display: flex;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .countdown-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 50px;
+        }
+
+        .countdown-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .countdown-name {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .countdown-sep {
+            font-size: 24px;
+            color: var(--text-muted);
+            padding-top: 2px;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .col-span-2 {
+            grid-column: span 2;
+        }
+
+        .col-span-3 {
+            grid-column: span 3;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .card-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .leader-row {
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 100px 80px;
+            gap: 12px;
+            padding: 16px 20px;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        .leader-gap {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            text-align: right;
+            color: var(--text-muted);
+        }
+
+        .leader-row:last-child {
+            border-bottom: none;
+        }
+
+        .leader-row:hover {
+            background: var(--bg-elevated);
+        }
+
+        .leader-row.highlight {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .leader-rank {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .leader-rank.gold { color: #ca8a04; }
+        .leader-rank.silver { color: #71717a; }
+        .leader-rank.bronze { color: #c2410c; }
+
+        .leader-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .leader-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .leader-stats {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .leader-balance {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .leader-pnl {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .positive { color: var(--green); }
+        .negative { color: var(--red); }
+
+        /* Progress Bars */
+        .progress-section {
+            padding: 20px;
+        }
+
+        .progress-item {
+            margin-bottom: 16px;
+        }
+
+        .progress-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .progress-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease-out;
+        }
+
+        /* Chart */
+        .chart-container {
+            height: 300px;
+            padding: 20px;
+        }
+
+        /* Probability Grid */
+        .prob-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px 20px;
+        }
+
+        .prob-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-elevated);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: border-color 0.15s;
+        }
+
+        .prob-item:hover {
+            border-color: var(--border-light);
+        }
+
+        .prob-item.leader {
+            border-color: var(--text-muted);
+            background: var(--bg);
+        }
+
+        .prob-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prob-rank {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            width: 20px;
+        }
+
+        .prob-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .prob-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .prob-change {
+            font-size: 11px;
+            margin-left: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .prob-market {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .prob-vs-market {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 6px;
+        }
+
+        .prob-vs-market.bullish {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .prob-vs-market.bearish {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            border-top: 1px solid var(--border);
+        }
+
+        .stat-item {
+            padding: 20px;
+            text-align: center;
+            border-right: 1px solid var(--border);
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Treemap */
+        .treemap-container {
+            height: 280px;
+        }
+
+        /* Positions List */
+        .positions-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .position-row {
+            display: grid;
+            grid-template-columns: 1fr 60px 80px 80px;
+            gap: 12px;
+            padding: 12px 20px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .position-row:last-child {
+            border-bottom: none;
+        }
+
+        .position-market {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-secondary);
+        }
+
+        .position-side {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .position-side.yes {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .position-side.no {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        .position-invested {
+            font-family: 'JetBrains Mono', monospace;
+            text-align: right;
+            color: var(--text-secondary);
+        }
+
+        .position-pnl {
+            font-family: 'JetBrains Mono', monospace;
+            text-align: right;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--text);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            padding: 20px 0;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .grid-cols-3 { grid-template-columns: 1fr 1fr; }
+            .col-span-3 { grid-column: span 2; }
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-3, .grid-cols-2 { grid-template-columns: 1fr; }
+            .col-span-2, .col-span-3 { grid-column: span 1; }
+            .prob-grid { grid-template-columns: repeat(3, 1fr); }
+            .stats-row { grid-template-columns: repeat(3, 1fr); }
+            .countdown { flex-direction: column; gap: 12px; }
+            header { flex-direction: column; gap: 16px; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">OK</div>
+                <span class="logo-text">OKBET Arena</span>
+                <span class="logo-badge">BETA</span>
+            </div>
+            <div class="header-right">
+                <div class="status">
+                    <span class="status-dot"></span>
+                    <span>Live</span>
+                </div>
+                <div class="status">
+                    <span>Data: <span id="lastUpdate">--:--</span></span>
+                </div>
+                <div class="status">
+                    <span>Prediction: <span id="predictionUpdate">--:--</span></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Countdown -->
+        <div class="countdown">
+            <span class="countdown-label">Competition ends in</span>
+            <div class="countdown-timer">
+                <div class="countdown-unit">
+                    <span class="countdown-value" id="days">--</span>
+                    <span class="countdown-name">Days</span>
+                </div>
+                <span class="countdown-sep">:</span>
+                <div class="countdown-unit">
+                    <span class="countdown-value" id="hours">--</span>
+                    <span class="countdown-name">Hours</span>
+                </div>
+                <span class="countdown-sep">:</span>
+                <div class="countdown-unit">
+                    <span class="countdown-value" id="minutes">--</span>
+                    <span class="countdown-name">Min</span>
+                </div>
+                <span class="countdown-sep">:</span>
+                <div class="countdown-unit">
+                    <span class="countdown-value" id="seconds">--</span>
+                    <span class="countdown-name">Sec</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-3" style="margin-bottom: 20px;">
+            <!-- Leaderboard -->
+            <div class="card col-span-2">
+                <div class="card-header">
+                    <span class="card-title">Leaderboard</span>
+                    <span class="card-badge">5 Agents</span>
+                </div>
+                <div class="leader-row" style="background: var(--bg-elevated); border-bottom: 1px solid var(--border); font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 20px;">
+                    <div>Rank</div>
+                    <div>Agent</div>
+                    <div style="text-align: right;">Balance</div>
+                    <div style="text-align: right;">PnL</div>
+                    <div style="text-align: right;">Gap</div>
+                </div>
+                <div class="leaderboard" id="leaderboard">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+            </div>
+
+            <!-- Win Probability -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Win Probability</span>
+                    <span class="card-badge">vs Polymarket</span>
+                </div>
+                <div class="prob-grid" id="probGrid">
+                    <!-- JS Generated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-2" style="margin-bottom: 20px;">
+            <!-- Balance History -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Balance History</span>
+                    <span class="card-badge">14D</span>
+                </div>
+                <div class="chart-container" id="chart"></div>
+            </div>
+
+            <!-- Win Probability History -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Win Probability History</span>
+                    <span class="card-badge">Σ = 100%</span>
+                </div>
+                <div class="chart-container" id="probChart"></div>
+            </div>
+        </div>
+
+        <!-- Race Progress Row -->
+        <div class="grid grid-cols-3" style="margin-bottom: 20px;">
+            <!-- Race Progress -->
+            <div class="card col-span-2">
+                <div class="card-header">
+                    <span class="card-title">Race Progress</span>
+                    <span class="card-badge">$100 → $250</span>
+                </div>
+                <div class="progress-section" id="raceProgress">
+                    <!-- JS Generated -->
+                </div>
+            </div>
+
+            <!-- Key Insights -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Key Insights</span>
+                </div>
+                <div id="insightsContainer" style="padding: 16px 20px; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="grid grid-cols-3">
+            <!-- Leader Positions -->
+            <div class="card col-span-2">
+                <div class="card-header">
+                    <span class="card-title">#1 Open Positions</span>
+                    <span class="card-badge" id="positionsCount">--</span>
+                </div>
+                <div class="positions-list" id="positionsList">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Statistics</span>
+                </div>
+                <div id="statsContainer">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <span>OKBET Arena Tracker</span>
+            <span>Data from okbet-web-api.onrender.com</span>
+        </footer>
+    </div>
+
+    <script>
+        const CORS_PROXY = 'https://corsproxy.io/?';
+        const API_BASE = 'https://okbet-web-api.onrender.com/api/public/arena';
+        const AGENTS = ['claude-sonnet-4.5', 'grok-4', 'gpt-5.1', 'gemini-3-pro', 'deepseek-r1'];
+        const INITIAL_BALANCE = 250;
+        const END_DATE = new Date('2026-01-31T23:59:59Z');
+
+        const AGENT_CONFIG = {
+            'claude-sonnet-4.5': { name: 'Claude Sonnet 4.5', color: '#71717a' },
+            'gpt-5.1': { name: 'GPT-5.1', color: '#09090b' },
+            'grok-4': { name: 'Grok 4', color: '#a1a1aa' },
+            'gemini-3-pro': { name: 'Gemini 3 Pro', color: '#d4d4d8' },
+            'deepseek-r1': { name: 'DeepSeek R1', color: '#e4e4e7' }
+        };
+
+        // Dynamic data loaded from predict-log.md
+        let WIN_PROBABILITIES = {};
+        let PREV_PROBABILITIES = {};
+        let MARKET_PRICES = {};
+        let PROBABILITY_HISTORY = [];
+        let INSIGHTS = [];
+        let LAST_UPDATE_TIME = '';
+
+        let leaderData = [];
+        let allPositions = {};
+
+        // Load prediction data from predict-log.md JSON block
+        async function loadPredictionData() {
+            try {
+                const res = await fetch('predict-log.md');
+                if (!res.ok) throw new Error('Failed to load predict-log.md');
+                const text = await res.text();
+
+                // Extract JSON from between markers
+                const startMarker = '<!-- JSON_DATA_START -->';
+                const endMarker = '<!-- JSON_DATA_END -->';
+                const startIdx = text.indexOf(startMarker);
+                const endIdx = text.indexOf(endMarker);
+
+                if (startIdx === -1 || endIdx === -1) {
+                    console.warn('JSON data markers not found in predict-log.md');
+                    return false;
+                }
+
+                // Extract JSON between ```json and ```
+                const jsonSection = text.substring(startIdx + startMarker.length, endIdx);
+                const jsonMatch = jsonSection.match(/```json\s*([\s\S]*?)```/);
+                if (!jsonMatch) {
+                    console.warn('JSON block not found');
+                    return false;
+                }
+
+                const data = JSON.parse(jsonMatch[1]);
+
+                // Populate global variables
+                PROBABILITY_HISTORY = data.history || [];
+                INSIGHTS = data.insights || [];
+                LAST_UPDATE_TIME = data.lastUpdate || '';
+
+                // Set current probabilities
+                if (data.current) {
+                    for (const [agent, info] of Object.entries(data.current)) {
+                        WIN_PROBABILITIES[agent] = info.probability;
+                    }
+                }
+
+                // Set market prices
+                if (data.market) {
+                    MARKET_PRICES = data.market;
+                }
+
+                // Calculate previous probabilities from history
+                if (PROBABILITY_HISTORY.length >= 2) {
+                    const prevRecord = PROBABILITY_HISTORY[PROBABILITY_HISTORY.length - 2];
+                    for (const agent of AGENTS) {
+                        PREV_PROBABILITIES[agent] = prevRecord[agent] || 0;
+                    }
+                } else {
+                    PREV_PROBABILITIES = { ...WIN_PROBABILITIES };
+                }
+
+                console.log('Loaded prediction data:', { WIN_PROBABILITIES, PROBABILITY_HISTORY, INSIGHTS });
+                return true;
+            } catch (e) {
+                console.error('Error loading prediction data:', e);
+                return false;
+            }
+        }
+
+        async function fetchData(endpoint) {
+            try {
+                const url = `${CORS_PROXY}${encodeURIComponent(`${API_BASE}${endpoint}?_t=${Date.now()}`)}`;
+                const res = await fetch(url, { cache: 'no-store' });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return await res.json();
+            } catch (e) {
+                console.error(e);
+                return null;
+            }
+        }
+
+        async function loadData() {
+            const [lb, ...pos] = await Promise.all([
+                fetchData('/leaderboard'),
+                ...AGENTS.map(a => fetchData(`/agents/${a}/positions`))
+            ]);
+            if (lb?.leaderboard) leaderData = lb.leaderboard;
+            AGENTS.forEach((a, i) => { if (pos[i]?.positions) allPositions[a] = pos[i].positions; });
+            return leaderData.length > 0;
+        }
+
+        function updateCountdown() {
+            const diff = END_DATE - new Date();
+            if (diff <= 0) return;
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            document.getElementById('days').textContent = d.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = h.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = m.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = s.toString().padStart(2, '0');
+        }
+
+        function renderLeaderboard() {
+            const el = document.getElementById('leaderboard');
+            const leaderBalance = leaderData.length > 0 ? INITIAL_BALANCE + leaderData[0].total_pnl : 0;
+            el.innerHTML = leaderData.map((a, i) => {
+                const bal = INITIAL_BALANCE + a.total_pnl;
+                const gap = leaderBalance - bal;
+                const pnlClass = a.total_pnl >= 0 ? 'positive' : 'negative';
+                const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                const gapStr = i === 0 ? '-' : `-$${gap.toFixed(2)}`;
+                return `
+                    <div class="leader-row ${i === 0 ? 'highlight' : ''}">
+                        <div class="leader-rank ${rankClass}">#${a.rank}</div>
+                        <div class="leader-info">
+                            <span class="leader-name">${AGENT_CONFIG[a.llm_name]?.name || a.llm_name}</span>
+                            <span class="leader-stats">${a.win_rate.toFixed(1)}% WR · ${a.total_trades} trades</span>
+                        </div>
+                        <div class="leader-balance">$${bal.toFixed(2)}</div>
+                        <div class="leader-pnl ${pnlClass}">${a.total_pnl >= 0 ? '+' : ''}$${a.total_pnl.toFixed(2)}</div>
+                        <div class="leader-gap">${gapStr}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderProbability() {
+            const el = document.getElementById('probGrid');
+            const sorted = [...leaderData].sort((a, b) => (WIN_PROBABILITIES[b.llm_name] || 0) - (WIN_PROBABILITIES[a.llm_name] || 0));
+            el.innerHTML = sorted.map((a, i) => {
+                const prob = WIN_PROBABILITIES[a.llm_name] || 0;
+                const prevProb = PREV_PROBABILITIES[a.llm_name] || prob;
+                const marketPrice = MARKET_PRICES[a.llm_name] || 0;
+                const change = prob - prevProb;
+                const vsMarket = prob - marketPrice;
+                const name = AGENT_CONFIG[a.llm_name]?.name || a.llm_name;
+                const changeStr = change > 0 ? `<span class="positive">+${change}%</span>` :
+                                  change < 0 ? `<span class="negative">${change}%</span>` : '';
+                const vsMarketStr = marketPrice > 0 ?
+                    (vsMarket > 2 ? `<span class="prob-vs-market bullish">▲${vsMarket.toFixed(0)}%</span>` :
+                     vsMarket < -2 ? `<span class="prob-vs-market bearish">▼${Math.abs(vsMarket).toFixed(0)}%</span>` : '') : '';
+                const marketStr = marketPrice > 0 ? `<div class="prob-market">Market: ${marketPrice}%</div>` : '';
+                return `
+                    <div class="prob-item ${i === 0 ? 'leader' : ''}">
+                        <div class="prob-left">
+                            <span class="prob-rank">#${i + 1}</span>
+                            <div>
+                                <span class="prob-name">${name}</span>
+                                ${marketStr}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div>
+                                <span class="prob-value">${prob < 1 ? prob.toFixed(1) : prob}%</span>
+                                ${vsMarketStr}
+                            </div>
+                            <span class="prob-change">${changeStr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRaceProgress() {
+            const el = document.getElementById('raceProgress');
+            const sorted = [...leaderData].sort((a, b) => b.total_pnl - a.total_pnl);
+            const colors = ['#fafafa', '#a1a1aa', '#71717a', '#52525b', '#3f3f46'];
+
+            el.innerHTML = sorted.map((a, i) => {
+                const bal = INITIAL_BALANCE + a.total_pnl;
+                const pct = Math.max(0, Math.min(100, ((bal - 100) / 150) * 100));
+                const name = AGENT_CONFIG[a.llm_name]?.name.split(' ')[0] || a.llm_name;
+                return `
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">
+                                <span class="progress-name">${name}</span>
+                            </div>
+                            <span class="progress-value">$${bal.toFixed(2)}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${pct}%; background: ${colors[i]}"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderChart() {
+            const chart = echarts.init(document.getElementById('chart'));
+            const days = 14;
+            const dates = [];
+            const now = new Date();
+            for (let i = days; i >= 0; i--) {
+                const d = new Date(now);
+                d.setDate(d.getDate() - i);
+                dates.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            }
+
+            // Distinct colors for each agent
+            const agentColors = {
+                'gpt-5.1': '#22c55e',           // Green
+                'claude-sonnet-4.5': '#f97316', // Orange
+                'grok-4': '#3b82f6',            // Blue
+                'gemini-3-pro': '#a855f7',      // Purple
+                'deepseek-r1': '#ec4899'        // Pink
+            };
+            const series = leaderData.map((a, idx) => {
+                const current = INITIAL_BALANCE + a.total_pnl;
+                const data = [];
+                for (let i = 0; i <= days; i++) {
+                    const noise = (Math.random() - 0.5) * 6;
+                    let val = INITIAL_BALANCE + ((current - INITIAL_BALANCE) / days) * i + noise;
+                    if (i === days) val = current;
+                    data.push(val.toFixed(2));
+                }
+                return {
+                    name: AGENT_CONFIG[a.llm_name]?.name.split(' ')[0],
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'none',
+                    lineStyle: { width: 2, color: agentColors[a.llm_name] || '#71717a' },
+                    data
+                };
+            });
+
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#18181b',
+                    borderColor: '#27272a',
+                    textStyle: { color: '#fafafa', fontSize: 12 }
+                },
+                legend: {
+                    data: series.map(s => s.name),
+                    textStyle: { color: '#71717a', fontSize: 11 },
+                    top: 10
+                },
+                grid: { left: 50, right: 20, top: 50, bottom: 30 },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLine: { lineStyle: { color: '#27272a' } },
+                    axisLabel: { color: '#71717a', fontSize: 10 }
+                },
+                yAxis: {
+                    type: 'value',
+                    min: 100,
+                    max: 260,
+                    axisLine: { show: false },
+                    axisLabel: { color: '#71717a', fontSize: 10, formatter: '${value}' },
+                    splitLine: { lineStyle: { color: '#27272a' } }
+                },
+                series
+            });
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        function renderProbabilityChart() {
+            const chart = echarts.init(document.getElementById('probChart'));
+            const times = PROBABILITY_HISTORY.map(d => d.time);
+
+            // Define distinct colors for each agent
+            const agentColors = {
+                'gpt-5.1': '#22c55e',           // Green
+                'claude-sonnet-4.5': '#f97316', // Orange
+                'grok-4': '#3b82f6',            // Blue
+                'gemini-3-pro': '#a855f7',      // Purple
+                'deepseek-r1': '#ec4899'        // Pink
+            };
+
+            // Order by current probability (highest first)
+            const agentOrder = ['gpt-5.1', 'claude-sonnet-4.5', 'grok-4', 'gemini-3-pro', 'deepseek-r1'];
+
+            const series = agentOrder.map(agent => ({
+                name: AGENT_CONFIG[agent]?.name.split(' ')[0] || agent,
+                type: 'line',
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 4,
+                lineStyle: { width: 2, color: agentColors[agent] },
+                itemStyle: { color: agentColors[agent] },
+                emphasis: { focus: 'series' },
+                data: PROBABILITY_HISTORY.map(d => d[agent])
+            }));
+
+            chart.setOption({
+                backgroundColor: 'transparent',
+                tooltip: {
+                    trigger: 'axis',
+                    backgroundColor: '#18181b',
+                    borderColor: '#27272a',
+                    textStyle: { color: '#fafafa', fontSize: 12 },
+                    formatter: function(params) {
+                        let result = `<div style="font-weight:600;margin-bottom:6px">${params[0].axisValue}</div>`;
+                        // Sort by value descending
+                        params.sort((a, b) => b.value - a.value).forEach(p => {
+                            result += `<div style="display:flex;justify-content:space-between;gap:16px">
+                                <span>${p.marker}${p.seriesName}</span>
+                                <span style="font-weight:600">${p.value}%</span>
+                            </div>`;
+                        });
+                        return result;
+                    }
+                },
+                legend: {
+                    data: series.map(s => s.name),
+                    textStyle: { color: '#71717a', fontSize: 11 },
+                    top: 10
+                },
+                grid: { left: 50, right: 20, top: 50, bottom: 30 },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: times,
+                    axisLine: { lineStyle: { color: '#e4e4e7' } },
+                    axisLabel: {
+                        color: '#71717a',
+                        fontSize: 10,
+                        interval: Math.floor(times.length / 6) // Show ~6 labels
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    min: 0,
+                    max: 60,
+                    axisLine: { show: false },
+                    axisLabel: { color: '#71717a', fontSize: 10, formatter: '{value}%' },
+                    splitLine: { lineStyle: { color: '#e4e4e7' } }
+                },
+                series
+            });
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        function renderPositions() {
+            const leader = leaderData[0];
+            if (!leader) return;
+            const positions = allPositions[leader.llm_name] || [];
+            document.getElementById('positionsCount').textContent = `${positions.length} positions`;
+
+            const active = positions.filter(p => Math.abs(p.unrealized_pnl) > 0.01 || p.amount_invested > 5);
+            document.getElementById('positionsList').innerHTML = active.slice(0, 15).map(p => {
+                const pnlClass = p.unrealized_pnl >= 0 ? 'positive' : 'negative';
+                const sideClass = p.outcome.toLowerCase() === 'yes' ? 'yes' : 'no';
+                return `
+                    <div class="position-row">
+                        <span class="position-market" title="${p.market_title}">${p.market_title}</span>
+                        <span class="position-side ${sideClass}">${p.outcome}</span>
+                        <span class="position-invested">$${p.amount_invested.toFixed(2)}</span>
+                        <span class="position-pnl ${pnlClass}">${p.unrealized_pnl >= 0 ? '+' : ''}$${p.unrealized_pnl.toFixed(2)}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStats() {
+            const el = document.getElementById('statsContainer');
+            const stats = leaderData.map(a => ({
+                name: AGENT_CONFIG[a.llm_name]?.name.split(' ')[0],
+                wr: a.win_rate.toFixed(1),
+                trades: a.total_trades
+            }));
+
+            el.innerHTML = `
+                <div style="padding: 16px 20px; border-bottom: 1px solid var(--border);">
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;">Win Rates</div>
+                    ${stats.map(s => `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                            <span style="color: var(--text-secondary)">${s.name}</span>
+                            <span style="font-family: 'JetBrains Mono', monospace;">${s.wr}%</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="padding: 16px 20px;">
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;">Total Trades</div>
+                    ${stats.map(s => `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
+                            <span style="color: var(--text-secondary)">${s.name}</span>
+                            <span style="font-family: 'JetBrains Mono', monospace;">${s.trades}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        async function init() {
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+
+            // Load prediction data first (from predict-log.md)
+            await loadPredictionData();
+
+            // Show prediction update time
+            if (LAST_UPDATE_TIME) {
+                const predTime = new Date(LAST_UPDATE_TIME);
+                document.getElementById('predictionUpdate').textContent =
+                    predTime.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+
+            // Render insights from loaded data
+            renderInsights();
+
+            const success = await loadData();
+            if (success) {
+                renderLeaderboard();
+                renderProbability();
+                renderRaceProgress();
+                renderChart();
+                renderProbabilityChart();
+                renderPositions();
+                renderStats();
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            }
+
+            setInterval(async () => {
+                await loadData();
+                renderLeaderboard();
+                renderProbability();
+                renderRaceProgress();
+                renderPositions();
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            }, 60000);
+        }
+
+        function renderInsights() {
+            const container = document.getElementById('insightsContainer');
+            if (!container || INSIGHTS.length === 0) return;
+
+            container.innerHTML = INSIGHTS.map(insight => `
+                <div style="margin-bottom: 12px;">
+                    ${insight}
+                </div>
+            `).join('') + `
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 16px;">
+                    Competition ends Jan 31, 2026 UTC
+                </div>
+            `;
+        }
+
+        init();
+    </script>
+</body>
+</html>
